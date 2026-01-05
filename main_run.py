@@ -15,11 +15,6 @@ SOURCE_SHEET_ID = os.getenv("SOURCE_SHEET_ID")
 SOURCE_WORKSHEET = "calc"
 TARGET_WORKSHEET = "RESUMO"
 
-TARGET_SHEETS = get_target_sheets()
-
-if not TARGET_SHEETS:
-    raise RuntimeError("TARGET_SHEETS mapping is empty. Check TARGET_SHEETS_CONFIG secret.")
-
 # ---------------- TARGET SHEETS MAPPING ----------------
 def get_target_sheets():
     config_json = os.getenv("TARGET_SHEETS_CONFIG")
@@ -36,6 +31,11 @@ def get_target_sheets():
         raise RuntimeError("TARGET_SHEETS_CONFIG must be a JSON object")
 
     return data
+
+TARGET_SHEETS = get_target_sheets()
+
+if not TARGET_SHEETS:
+    raise RuntimeError("TARGET_SHEETS mapping is empty. Check TARGET_SHEETS_CONFIG secret.")
 
 # ---------------- RATE LIMITING CONFIG ----------------
 # Google Sheets API limits: 60 read requests per minute per user
