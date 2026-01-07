@@ -169,6 +169,38 @@ def read_google_sheet(client, sheet_id, worksheet_name):
     
     return retry_with_backoff(_read_sheet)
 
+def sort_df_by_funcao(df):
+    """Sort DataFrame by Função in specified order."""
+    if df.empty or "Função" not in df.columns:
+        return df
+    
+    # Create a copy to avoid modifying the original
+    df_sorted = df.copy()
+    
+    # Normalize Função values
+    df_sorted["Função_clean"] = (
+        df_sorted["Função"]
+        .astype(str)
+        .str.strip()
+        .str.upper()
+        .str.replace("  ", " ", regex=False)  # Remove double spaces
+    )
+    
+    # Map to sort order (assign numeric value for sorting)
+    funcao_order_map = {funcao: i for i, funcao in enumerate(FUNCAO_SORT_ORDER)}
+    
+    # Create sort column (assign high number for unknown funções)
+    df_sorted["_sort_key"] = df_sorted["Função_clean"].apply(
+        lambda x: funcao_order_map.get(x, 999)  # Put unknown at the end
+    )
+    
+    # Sort by sort key (primary) and Colaborador (secondary)
+    df_sorted = df_sorted.sort_values(
+        by=["_sort_key", "Colaborador"]
+    ).drop(columns=["Função_clean", "_sort_key"])
+    
+    return df_sorted
+
 def parse_brl_number(value):
     if value is None:
         return 0.0
@@ -506,6 +538,10 @@ def process_filial(client, filial_target):
     # Filter for current filial
     df_filial = df[df["Filial"] == filial_target]
     logging.info(f"Rows for Filial {filial_target}: {len(df_filial)}")
+
+    if not df_filial.empty:
+        df_filial = sort_df_by_funcao(df_filial)
+        logging.info(f"Sorted {len(df_filial)} rows by Função")
 
     # Clear rows 9-57 in target sheet BEFORE writing new data
     clear_sheet_range(
