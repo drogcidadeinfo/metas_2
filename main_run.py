@@ -63,6 +63,16 @@ def get_gspread_client():
     )
     return gspread.authorize(creds)
 
+def clear_sheet_range(client, sheet_id, worksheet_name, start_row=9, end_row=57):
+    def _clear_range():
+        logging.info(f"Clearing rows {start_row}-{end_row} in '{worksheet_name}'")
+        ws = get_worksheet(client, sheet_id, worksheet_name)
+        
+        # Clear the entire range
+        ws.batch_clear([f"A{start_row}:Z{end_row}"])
+    
+    return retry_with_backoff(_clear_range)
+
 def retry_with_backoff(func, *args, **kwargs):
     """Execute a function with exponential backoff retry logic."""
     delay = INITIAL_DELAY
@@ -396,7 +406,7 @@ def process_excel_data(file_path):
     return result_df
 
 # ---------------- PROCESS SINGLE FILIAL ----------------
-def process_filial(client, filial_target):
+'''def process_filial(client, filial_target):
     """Process a single filial and update its corresponding target sheet."""
     
     # Get the target sheet ID for this filial
@@ -424,6 +434,90 @@ def process_filial(client, filial_target):
     # Filter for current filial
     df_filial = df[df["Filial"] == filial_target]
     logging.info(f"Rows for Filial {filial_target}: {len(df_filial)}")
+
+    # Write data to target sheet
+    write_df_to_sheet(
+        client,
+        df_filial,
+        target_sheet_id,
+        TARGET_WORKSHEET,
+        start_row=9
+    )
+    
+    # Add delay after writing data
+    time.sleep(3)
+
+    # Update header values
+    update_header_values(
+        client,
+        target_sheet_id,
+        TARGET_WORKSHEET,
+        filial_target
+    )
+    
+    # Add delay after updating headers
+    time.sleep(2)
+    
+    # Update CMV percentage
+    cmv_percent = get_cmv_percentage_by_filial(
+        client,
+        SOURCE_SHEET_ID,
+        filial_target
+    )
+    
+    # Add delay before final update
+    time.sleep(1)
+
+    update_percentage_cell(
+        client,
+        target_sheet_id,
+        TARGET_WORKSHEET,
+        "J2",
+        cmv_percent
+    )
+    
+    logging.info(f"Successfully processed Filial {filial_target}")'''
+
+def process_filial(client, filial_target):
+    """Process a single filial and update its corresponding target sheet."""
+    
+    # Get the target sheet ID for this filial
+    if filial_target not in TARGET_SHEETS:
+        logging.warning(f"Skipping Filial {filial_target} - not in TARGET_SHEETS mapping")
+        return
+    
+    target_sheet_id = TARGET_SHEETS[filial_target]
+    
+    logging.info(f"Processing Filial {filial_target} -> Target Sheet: {target_sheet_id}")
+    
+    # Set locale for target sheet
+    set_spreadsheet_locale_ptbr(client, target_sheet_id)
+    
+    # Add delay after locale setting
+    time.sleep(2)
+
+    # Read source data
+    df = read_google_sheet(client, SOURCE_SHEET_ID, SOURCE_WORKSHEET)
+    logging.info(f"Total rows in source: {len(df)}")
+    
+    # Add delay after reading source
+    time.sleep(3)
+
+    # Filter for current filial
+    df_filial = df[df["Filial"] == filial_target]
+    logging.info(f"Rows for Filial {filial_target}: {len(df_filial)}")
+
+    # Clear rows 9-57 in target sheet BEFORE writing new data
+    clear_sheet_range(
+        client,
+        target_sheet_id,
+        TARGET_WORKSHEET,
+        start_row=9,
+        end_row=57
+    )
+    
+    # Add delay after clearing
+    time.sleep(1)
 
     # Write data to target sheet
     write_df_to_sheet(
