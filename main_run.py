@@ -37,6 +37,17 @@ TARGET_SHEETS = get_target_sheets()
 if not TARGET_SHEETS:
     raise RuntimeError("TARGET_SHEETS mapping is empty. Check TARGET_SHEETS_CONFIG secret.")
 
+# ---------------- FUNCAO SORTING ORDER ----------------
+FUNCAO_SORT_ORDER = [
+    "GERENTE",
+    "SUBGERENTE", 
+    "GERENTE FARMACEUTICO",
+    "PROMOTOR DE VENDAS",
+    "OPERADOR DE CAIXA",
+    "OPERADORA DE CAIXA",
+    "FARMACEUTICO"
+]
+
 # ---------------- RATE LIMITING CONFIG ----------------
 # Google Sheets API limits: 60 read requests per minute per user
 # We'll implement exponential backoff for rate limiting
