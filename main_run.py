@@ -272,10 +272,16 @@ def get_header_dates():
         10: "OUTUBRO", 11: "NOVEMBRO", 12: "DEZEMBRO",
     }
 
-    return {
+    '''return {
         "month": month_name_pt[today.month],
         "yesterday": yesterday.strftime("%d/%m/%Y"),
         "days_remaining": days_remaining,
+    }'''
+
+    return {
+            "month": "JANUARY",
+            "yesterday": "31/01/2026",
+            "days_remaining": "0",
     }
 
 def get_meta_filial_value(client, sheet_id, filial, column_name):
