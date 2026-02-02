@@ -3,8 +3,8 @@ name: Run Google Sheets Processor
 on:
   workflow_dispatch:
   # Optional schedule
-  schedule:
-    - cron: "0 10 * * *"
+  # schedule:
+    #- cron: "0 10 * * *"
 
 jobs:
   run:
