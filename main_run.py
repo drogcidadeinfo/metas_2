@@ -263,7 +263,7 @@ def get_header_dates():
     last_day = calendar.monthrange(today.year, today.month)[1]
     end_of_month = date(today.year, today.month, last_day)
 
-    days_remaining = (end_of_month - today).days + 1
+    days_remaining = (end_of_month - today).days
 
     month_name_pt = {
         1: "JANEIRO", 2: "FEVEREIRO", 3: "MARÇO",
@@ -272,17 +272,17 @@ def get_header_dates():
         10: "OUTUBRO", 11: "NOVEMBRO", 12: "DEZEMBRO",
     }
 
-    '''return {
+    return {
         "month": month_name_pt[today.month],
         "yesterday": yesterday.strftime("%d/%m/%Y"),
         "days_remaining": days_remaining,
-    }'''
+    }
 
-    return {
+    '''return {
             "month": "JANUARY",
             "yesterday": "31/01/2026",
             "days_remaining": "0",
-    }
+    }'''
 
 def get_meta_filial_value(client, sheet_id, filial, column_name):
     def _get_meta_value():
