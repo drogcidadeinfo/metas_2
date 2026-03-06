@@ -274,7 +274,7 @@ def get_header_dates():
 
     return {
         "month": month_name_pt[today.month],
-        "yesterday": yesterday.strftime("%d/%m/%Y"),
+        "yesterday": today.strftime("%d/%m/%Y"),
         "days_remaining": days_remaining,
     }
 
