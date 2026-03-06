@@ -131,14 +131,31 @@ def read_source_data(client):
                 codigo = row[0]  # Código is first column
                 valor_vendas = row[2]  # Valor Vendas is third column
                 
-                # Clean the valor_vendas (remove R$ and convert to number)
+                # Clean the valor_vendas (remove any currency symbols and convert to float)
                 if valor_vendas:
-                    # Remove currency symbol and dots, replace comma with dot for decimal
-                    clean_value = str(valor_vendas).replace('R$', '').replace(' ', '').replace('.', '').replace(',', '.')
+                    # Remove any non-numeric characters except decimal point and minus sign
+                    # This handles various formats: "R$ 1.234,56", "1,234.56", etc.
+                    clean_value = str(valor_vendas).replace('R$', '').replace(' ', '')
+                    
+                    # Handle Brazilian format (comma as decimal separator)
+                    if ',' in clean_value and '.' in clean_value:
+                        # Mixed format - assume last comma is decimal
+                        clean_value = clean_value.replace('.', '').replace(',', '.')
+                    elif ',' in clean_value and '.' not in clean_value:
+                        # Brazilian format
+                        clean_value = clean_value.replace('.', '').replace(',', '.')
+                    elif '.' in clean_value and ',' not in clean_value:
+                        # International format - keep as is
+                        pass
+                    
+                    # Remove any remaining non-numeric characters except dot and minus
+                    import re
+                    numeric_value = re.sub(r'[^\d.-]', '', clean_value)
+                    
                     try:
-                        source_data[codigo] = float(clean_value)
+                        source_data[codigo] = float(numeric_value)
                     except ValueError:
-                        logging.warning(f"Could not convert value '{valor_vendas}' for code {codigo}")
+                        logging.warning(f"Could not convert value '{valor_vendas}' to number for code {codigo}")
                         source_data[codigo] = 0
                 else:
                     source_data[codigo] = 0
@@ -175,7 +192,8 @@ def write_df_to_sheet(client, df, sheet_id, worksheet_name, start_row=9):
     return retry_with_backoff(_write_sheet)
 
 def update_target_values(client, target_sheet_id, worksheet_name, source_data, filial_number):
-    """Update column H with values from source_data based on employee codes."""
+    """Update column H with numeric values from source_data based on employee codes.
+    Column H should be formatted as currency in the Google Sheets template."""
     
     def _update_values():
         logging.info(f"Updating values for Filial {filial_number} in {worksheet_name}")
@@ -225,17 +243,16 @@ def update_target_values(client, target_sheet_id, worksheet_name, source_data, f
             # Check if this code exists in our source data
             if codigo in source_data:
                 valor_hb = source_data[codigo]
-                # Format as Brazilian currency
-                formatted_value = f"R$ {valor_hb:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
                 
-                # Prepare update for column H (index 7)
+                # Write as raw number - Google Sheets will format it as currency
+                # based on the column formatting
                 updates.append({
                     'range': f'H{row_num + 1}',
-                    'values': [[formatted_value]]
+                    'values': [[valor_hb]]
                 })
                 updated_count += 1
             else:
-                # Optional: Clear the cell if code not found
+                # Clear the cell if code not found
                 updates.append({
                     'range': f'H{row_num + 1}',
                     'values': [['']]
@@ -270,7 +287,7 @@ def update_target_values(client, target_sheet_id, worksheet_name, source_data, f
     
     return retry_with_backoff(_update_values)
 
-def process_filial(client, filial_target):
+def process_filial(client, filial_target, source_data):
     """Process a single filial and update its corresponding target sheet."""
     
     # Get the target sheet ID for this filial
@@ -282,10 +299,11 @@ def process_filial(client, filial_target):
     
     logging.info(f"Processing Filial {filial_target} -> Target Sheet: {target_sheet_id}")
     
-    # Read source data once (but we'll read it in main and pass it to avoid multiple reads)
-    # For now, we'll read it here - but ideally read once in main and pass to this function
+    # Clear existing values in column H (rows 9-57)
+    clear_sheet_range(client, target_sheet_id, TARGET_WORKSHEET, start_row=9, end_row=57)
     
-    # We need to pass source_data to this function - let's modify this in main
+    # Update with new values based on employee codes
+    update_target_values(client, target_sheet_id, TARGET_WORKSHEET, source_data, filial_target)
 
 # ---------------- MAIN ----------------
 def main():
@@ -311,20 +329,8 @@ def main():
         try:
             logging.info(f"[{index}/{len(filials_to_process)}] Starting Filial {filial_target}")
             
-            # Get target sheet ID
-            target_sheet_id = TARGET_SHEETS.get(filial_target)
-            if not target_sheet_id:
-                logging.warning(f"No target sheet ID for Filial {filial_target}")
-                failed_filials.append(filial_target)
-                continue
-            
-            logging.info(f"Processing Filial {filial_target} -> Target Sheet: {target_sheet_id}")
-            
-            # Clear existing values in column H (rows 9-57)
-            clear_sheet_range(client, target_sheet_id, TARGET_WORKSHEET, start_row=9, end_row=57)
-            
-            # Update with new values based on employee codes
-            update_target_values(client, target_sheet_id, TARGET_WORKSHEET, source_data, filial_target)
+            # Process the filial with the pre-loaded source data
+            process_filial(client, filial_target, source_data)
             
             successful_filials.append(filial_target)
             
