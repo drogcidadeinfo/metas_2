@@ -35,4 +35,4 @@ jobs:
           SOURCE_SHEET_ID: ${{ secrets.SOURCE_SHEET_ID }}
           TARGET_SHEETS_CONFIG: ${{ secrets.TARGET_SHEETS_CONFIG }}
         run: |
-          python main_run.py
+          python hb_run.py
