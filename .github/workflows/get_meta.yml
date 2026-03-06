@@ -1,4 +1,4 @@
-name: Run Google Sheets Processor
+name: get updated meta values 
 
 on:
   workflow_dispatch:
@@ -29,10 +29,10 @@ jobs:
             google-api-python-client \
             openpyxl
 
-      - name: Run script
+      - name: get metas from the filial sheets
         env:
           GSA_CREDENTIALS: ${{ secrets.GSA_CREDENTIALS }}
           SOURCE_SHEET_ID: ${{ secrets.SOURCE_SHEET_ID }}
           TARGET_SHEETS_CONFIG: ${{ secrets.TARGET_SHEETS_CONFIG }}
         run: |
-          python main_run.py
+          python get_meta_run.py
