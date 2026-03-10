@@ -13,7 +13,7 @@ from googleapiclient.errors import HttpError
 creds_json = os.getenv("GSA_CREDENTIALS")
 SOURCE_SHEET_ID = os.getenv("SOURCE_SHEET_ID")
 SOURCE_WORKSHEET = "VENDAS_VENDEDOR_HB"
-TARGET_WORKSHEET = "CAMPANHA HB"
+TARGET_WORKSHEET = "CAMPANHA_HB"
 
 # ---------------- TARGET SHEETS MAPPING ----------------
 def get_target_sheets():
