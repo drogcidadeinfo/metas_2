@@ -5,7 +5,7 @@ import pandas as pd
 import calendar
 import json
 import os
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 from openpyxl import Workbook
 from google.oauth2.service_account import Credentials
 from googleapiclient.errors import HttpError
@@ -127,6 +127,11 @@ def get_worksheet(client, sheet_id, worksheet_name):
         return client.open_by_key(sheet_id).worksheet(worksheet_name)
     
     return retry_with_backoff(_get_worksheet)
+
+def get_last_updated_datetime():
+    """Get current datetime formatted for last update display."""
+    now = datetime.now()
+    return now.strftime("%d/%m/%Y %H:%M")
 
 def get_spreadsheet(client, sheet_id):
     def _get_spreadsheet():
@@ -369,6 +374,9 @@ def update_header_values(client, sheet_id, worksheet_name, filial):
         hb_day = parse_brl_number(hb_day_raw)
         tkt_day = parse_brl_number(tkt_day_raw)
 
+        # get last updated time
+        last_updated = get_last_updated_datetime()
+
         # Update cells with small delays between them
         updates = [
             ("B2", [[filial]]),
@@ -377,6 +385,7 @@ def update_header_values(client, sheet_id, worksheet_name, filial):
             ("C2:C4", [[dates["days_remaining"]]] * 3),
             ("B5:C5", [[float(raw_meta), float(raw_meta)]]),
             ("D2:D3", [[valor_total], [valor_total]]),
+            ("A6", [[last_updated]]),
         ]
         
         for cell, values in updates:
