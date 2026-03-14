@@ -385,7 +385,7 @@ def update_header_values(client, sheet_id, worksheet_name, filial):
             ("C2:C4", [[dates["days_remaining"]]] * 3),
             ("B5:C5", [[float(raw_meta), float(raw_meta)]]),
             ("D2:D3", [[valor_total], [valor_total]]),
-            ("A6", [[last_updated]]),
+            ("B6", [[last_updated]]),
         ]
         
         for cell, values in updates:
