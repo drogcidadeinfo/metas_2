@@ -5,7 +5,7 @@ import pandas as pd
 import calendar
 import json
 import os
-from datetime import date, timedelta, datetime
+from datetime import date, timedelta, datetime, timezone
 from openpyxl import Workbook
 from google.oauth2.service_account import Credentials
 from googleapiclient.errors import HttpError
@@ -130,8 +130,10 @@ def get_worksheet(client, sheet_id, worksheet_name):
 
 def get_last_updated_datetime():
     """Get current datetime formatted for last update display."""
-    now = datetime.now()
-    return now.strftime("%d/%m/%Y %H:%M")
+    utc_now = datetime.now(timezone.utc)
+    brazil_now = utc_now -  timedelta(hours=3)
+    
+    return brazil_now.strftime("%d/%m/%Y %H:%M")
 
 def get_spreadsheet(client, sheet_id):
     def _get_spreadsheet():
