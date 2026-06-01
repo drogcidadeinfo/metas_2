@@ -281,15 +281,15 @@ def get_header_dates():
         10: "OUTUBRO", 11: "NOVEMBRO", 12: "DEZEMBRO",
     }
 
-    return {
+    '''return {
         "month": month_name_pt[today.month],
         "yesterday": today.strftime("%d/%m/%Y"),
         "days_remaining": days_remaining,
-    }
+    }'''
 
     '''return {
-            "month": "MARÇO",
-            "yesterday": "31/03/2026",
+            "month": "MAIO",
+            "yesterday": "31/05/2026",
             "days_remaining": "0",
     }'''
 
