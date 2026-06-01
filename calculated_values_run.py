@@ -287,11 +287,11 @@ def get_header_dates():
         "days_remaining": days_remaining,
     }'''
 
-    '''return {
+    return {
             "month": "MAIO",
             "yesterday": "31/05/2026",
             "days_remaining": "0",
-    }'''
+    }
 
 def get_meta_filial_value(client, sheet_id, filial, column_name):
     def _get_meta_value():
